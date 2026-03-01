@@ -1,6 +1,6 @@
 # 🕰️ Broken Clock
 
-**Broken Clock** is a minimalist travel and life blog platform designed for storytelling. It's built with modern technologies to provide a fast, elegant, and content-first experience.
+**Broken Clock** is a minimalist broken clock built with modern technologies to provide a fast, elegant, and content-first experience.
 
 ## ✨ Features
 
