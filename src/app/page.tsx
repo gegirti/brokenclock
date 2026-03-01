@@ -4,22 +4,63 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [time, setTime] = useState(new Date());
+  const [speed, setSpeed] = useState(7.5);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setTime(new Date());
-    }, 1000);
-    return () => clearInterval(timer);
+    // Start with a 1-hour offset so we don't start at real time
+    let virtualMs = Date.now() + (1000 * 60 * 60);
+    let lastRealTime = Date.now();
+    let currentSpeed = 7.5;
+    let targetSpeed = 7.5;
+
+    const clockTimer = setInterval(() => {
+      const now = Date.now();
+      const delta = now - lastRealTime;
+      lastRealTime = now;
+
+      // Smoothed speed drift (lerp)
+      currentSpeed += (targetSpeed - currentSpeed) * 0.02;
+      setSpeed(currentSpeed);
+
+      virtualMs += delta * currentSpeed;
+
+      // --- REALITY EVASION LOGIC ---
+      // We check if the virtual time is within 2 seconds of real time (modulo 12 hours)
+      const twelveHours = 12 * 60 * 60 * 1000;
+      const virtualTimeOfDay = virtualMs % twelveHours;
+      const realTimeOfDay = now % twelveHours;
+      const timeDiff = Math.abs(virtualTimeOfDay - realTimeOfDay);
+
+      if (timeDiff < 2000) {
+        // If we're getting dangerously close to "correct", perform a temporal jump
+        virtualMs += 5000;
+      }
+      // -----------------------------
+
+      setTime(new Date(virtualMs));
+    }, 50);
+
+    // Randomize speed every 5-15 seconds
+    const randomizeSpeed = () => {
+      targetSpeed = Math.random() * (100 - 0.01) + 0.01;
+      const nextDelay = Math.random() * 10000 + 5000;
+      setTimeout(randomizeSpeed, nextDelay);
+    };
+
+    const initialRandomizer = setTimeout(randomizeSpeed, 5000);
+
+    return () => {
+      clearInterval(clockTimer);
+      clearTimeout(initialRandomizer);
+    };
   }, []);
 
-  const seconds = time.getSeconds();
-  const minutes = time.getMinutes();
-  const hours = time.getHours();
-
-  // Calculate rotations
-  const secondsDeg = (seconds / 60) * 360;
-  const minutesDeg = (minutes / 60) * 360 + (seconds / 60) * 6;
-  const hoursDeg = ((hours % 12) / 12) * 360 + (minutes / 60) * 30;
+  // Calculate continuous rotations
+  // Using modulo day to keep values manageable while preserving continuity within the day
+  const dayMs = time.getTime() % (24 * 60 * 60 * 1000);
+  const secondsDeg = (dayMs / 1000) * 6;
+  const minutesDeg = (dayMs / (1000 * 60)) * 6;
+  const hoursDeg = (dayMs / (1000 * 3600)) * 30;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] font-sans selection:bg-zinc-800">
@@ -74,7 +115,6 @@ export default function Home() {
             className="absolute inset-0 flex justify-center"
             style={{
               transform: `rotate(${hoursDeg}deg)`,
-              transition: "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
             }}
           >
             <div className="mt-[105px] h-20 w-2 rounded-full bg-white shadow-lg sm:mt-[155px] sm:h-32" />
@@ -85,7 +125,6 @@ export default function Home() {
             className="absolute inset-0 flex justify-center"
             style={{
               transform: `rotate(${minutesDeg}deg)`,
-              transition: "transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
             }}
           >
             <div className="mt-16 h-32 w-1.5 rounded-full bg-zinc-300 shadow-md sm:mt-24 sm:h-44" />
@@ -96,7 +135,6 @@ export default function Home() {
             className="absolute inset-0 flex justify-center"
             style={{
               transform: `rotate(${secondsDeg}deg)`,
-              transition: "transform 0.2s cubic-bezier(0.45, 0.05, 0.55, 0.95)",
             }}
           >
             <div className="mt-8 h-40 w-0.5 rounded-full bg-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)] sm:mt-12 sm:h-56" />
@@ -113,6 +151,9 @@ export default function Home() {
           </h1>
           <p className="text-xl font-mono tracking-[0.25em] text-zinc-600 tabular-nums">
             {time.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </p>
+          <p className="text-[10px] font-mono tracking-widest text-zinc-800 uppercase">
+            Speed: {speed.toFixed(2)}x
           </p>
         </div>
 
