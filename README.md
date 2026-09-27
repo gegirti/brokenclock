@@ -1,12 +1,12 @@
 # 🕰️ Broken Clock
 
-**Broken Clock** is a minimalist clock that deliberately accelerates, changes speed, and evades real time.
+**Broken Clock** is a minimalist, real-time analog and digital clock.
 
 ## ✨ Features
 
 - **Minimalist Design**: Focused on readability and high-quality visuals.
 - **Responsive Layout**: Optimized for all devices using Tailwind CSS 4.
-- **Unpredictable Time**: Randomized speed and direction changes keep the clock from settling on real time.
+- **Real-Time Display**: Analog hands and digital time stay synchronized in the viewer's local time zone.
 
 ## 🛠️ Tech Stack
 

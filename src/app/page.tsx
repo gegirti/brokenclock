@@ -4,77 +4,13 @@ import { useEffect, useState } from "react";
 
 export default function Home() {
   const [time, setTime] = useState<Date | null>(null);
-  const [speed, setSpeed] = useState(7.5);
-  const [realityGap, setRealityGap] = useState(0);
 
   useEffect(() => {
-    // Start with a 1-hour offset so we don't start at real time
-    const initialRealTime = Date.now();
-    let virtualMs = initialRealTime + (1000 * 60 * 60);
-    let lastRealTime = initialRealTime;
-    let currentSpeed = 7.5;
-    let targetSpeed = 7.5;
-    let direction = 1;
-    let inDangerZone = false;
-    let randomizerTimer: ReturnType<typeof setTimeout> | undefined;
-
-    const getRealityGap = (virtualTime: number, realTime: number) => {
-      const day = 24 * 60 * 60 * 1000;
-      const virtualTimeOfDay = ((virtualTime % day) + day) % day;
-      const realTimeOfDay = realTime % day;
-      const difference = Math.abs(virtualTimeOfDay - realTimeOfDay);
-
-      return Math.min(difference, day - difference);
-    };
-
     const clockTimer = setInterval(() => {
-      const now = Date.now();
-      const delta = now - lastRealTime;
-      lastRealTime = now;
-
-      // Smoothed speed drift (lerp)
-      currentSpeed += (targetSpeed - currentSpeed) * 0.02;
-      setSpeed(currentSpeed);
-
-      virtualMs += delta * currentSpeed * direction;
-
-      // --- REALITY EVASION LOGIC ---
-      let timeDiff = getRealityGap(virtualMs, now);
-
-      // Reversal Logic: If within 1 minute, reverse direction
-      if (timeDiff < 60000) {
-        if (!inDangerZone) {
-          direction *= -1;
-          inDangerZone = true;
-        }
-      } else {
-        inDangerZone = false;
-      }
-
-      // Hard Jump Logic: If within 2 seconds, jump away
-      if (timeDiff < 2000) {
-        virtualMs += 5000 * (direction > 0 ? 1 : -1);
-        timeDiff = getRealityGap(virtualMs, now);
-      }
-      // -----------------------------
-
-      setRealityGap(timeDiff);
-      setTime(new Date(virtualMs));
+      setTime(new Date());
     }, 50);
 
-    // Randomize speed every 5-15 seconds
-    const randomizeSpeed = () => {
-      targetSpeed = Math.random() * (100 - 0.01) + 0.01;
-      const nextDelay = Math.random() * 10000 + 5000;
-      randomizerTimer = setTimeout(randomizeSpeed, nextDelay);
-    };
-
-    randomizerTimer = setTimeout(randomizeSpeed, 5000);
-
-    return () => {
-      clearInterval(clockTimer);
-      if (randomizerTimer) clearTimeout(randomizerTimer);
-    };
+    return () => clearInterval(clockTimer);
   }, []);
 
   // Calculate continuous rotations
@@ -174,12 +110,6 @@ export default function Home() {
             {time
               ? time.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })
               : "--:--:--"}
-          </p>
-          <p className="text-[10px] font-mono tracking-widest text-zinc-800 uppercase">
-            Speed: {speed.toFixed(2)}x
-          </p>
-          <p className={`text-[9px] font-mono tracking-[0.3em] uppercase transition-colors duration-500 ${realityGap < 120000 ? 'text-rose-500 animate-pulse' : 'text-zinc-900'}`}>
-            Reality Gap: {(realityGap / 1000).toFixed(1)}s
           </p>
         </div>
 
