@@ -60,7 +60,14 @@ function OrbitFace({ hoursDeg, minutesDeg, secondsDeg, timeString }: { hoursDeg:
 export default function Home() {
   const [time, setTime] = useState<Date | null>(null);
   const [face, setFace] = useState<FaceId>("noir");
-  useEffect(() => { const clockTimer = setInterval(() => setTime(new Date()), 50); return () => clearInterval(clockTimer); }, []);
+  useEffect(() => {
+    const minimumOffset = 59 * 1000;
+    const maximumOffset = (11 * 60 * 60 + 59 * 60 + 59) * 1000;
+    const offset = Math.floor(Math.random() * (maximumOffset - minimumOffset + 1)) + minimumOffset;
+    const clockTimer = setInterval(() => setTime(new Date(Date.now() + offset)), 50);
+
+    return () => clearInterval(clockTimer);
+  }, []);
   const hoursDeg = time ? ((time.getHours() % 12) + time.getMinutes() / 60) * 30 : 0;
   const minutesDeg = time ? (time.getMinutes() + time.getSeconds() / 60) * 6 : 0;
   const secondsDeg = time ? (time.getSeconds() + time.getMilliseconds() / 1000) * 6 : 0;

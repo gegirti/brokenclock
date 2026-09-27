@@ -6,7 +6,7 @@
 
 - **Watchface Gallery**: Switch among five original faces: Noir, Paper, Pixel, Orbit, and Chrono.
 - **Responsive Layout**: Optimized for all devices using Tailwind CSS 4.
-- **Real-Time Display**: Analog hands and digital time stay synchronized in the viewer's local time zone.
+- **Offset Time**: On each load, analog hands and digital time begin 59 seconds to 11:59:59 ahead of the viewer's local time, then advance normally.
 
 ## 🛠️ Tech Stack
 
