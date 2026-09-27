@@ -4,7 +4,7 @@
 
 ## ✨ Features
 
-- **Minimalist Design**: Focused on readability and high-quality visuals.
+- **Watchface Gallery**: Switch among five original faces: Noir, Paper, Pixel, Orbit, and Chrono.
 - **Responsive Layout**: Optimized for all devices using Tailwind CSS 4.
 - **Real-Time Display**: Analog hands and digital time stay synchronized in the viewer's local time zone.
 
@@ -44,6 +44,15 @@
 
 - `/src/app`: Next.js App Router and clock UI.
 - `/public`: Static assets (logos, images).
+
+## Design references
+
+The gallery is implemented from scratch with CSS and React; it does not include third-party code, artwork, or fonts. Its broad design directions were informed by these open-source watchface projects:
+
+- [Google Watch Face Format](https://github.com/google/watchface) (Apache-2.0)
+- [M8 pixel watchface](https://github.com/rdnt/m8) (MIT)
+- [Watchface No. 1](https://github.com/markusressel/Watchface-No.-1) (MIT)
+- [Obsidian Pebble watchface](https://github.com/stefanheule/obsidian) (Apache-2.0)
 
 ## 📄 License
 
