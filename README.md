@@ -7,6 +7,7 @@
 - **Watchface Gallery**: Switch among five original faces: Noir, Paper, Pixel, Orbit, and Chrono.
 - **Responsive Layout**: Optimized for all devices using Tailwind CSS 4.
 - **Offset Time**: On each load, analog hands and digital time begin 59 seconds to 11:59:59 ahead of the viewer's local time, then advance normally.
+- **Failure Engine**: Timed display faults distort the face without changing its canonical timeline. See `/failures` for the complete field guide.
 
 ## 🛠️ Tech Stack
 

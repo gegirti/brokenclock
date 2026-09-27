@@ -3,6 +3,11 @@
 import { useEffect, useState } from "react";
 
 type FaceId = "noir" | "paper" | "pixel" | "orbit" | "chrono";
+type Failure = "fast" | "slow" | "stopped" | "jump" | "jitter" | "skipped-seconds" | "desynchronized-hands" | "stutter" | "time-smear" | "ghost-echo" | "blackout";
+
+const failures: { id: Failure; label: string }[] = [
+  { id: "fast", label: "OVERSPEED" }, { id: "slow", label: "DRAG" }, { id: "stopped", label: "STOPPED" }, { id: "jump", label: "SYNC JUMP" }, { id: "jitter", label: "GEAR JITTER" }, { id: "skipped-seconds", label: "SKIPPED SECONDS" }, { id: "desynchronized-hands", label: "HAND DESYNC" }, { id: "stutter", label: "STUTTER" }, { id: "time-smear", label: "TIME SMEAR" }, { id: "ghost-echo", label: "GHOST ECHO" }, { id: "blackout", label: "DISPLAY BLACKOUT" },
+];
 
 const faces: { id: FaceId; name: string; detail: string }[] = [
   { id: "noir", name: "Noir", detail: "Minimal analog" },
@@ -60,17 +65,54 @@ function OrbitFace({ hoursDeg, minutesDeg, secondsDeg, timeString }: { hoursDeg:
 export default function Home() {
   const [time, setTime] = useState<Date | null>(null);
   const [face, setFace] = useState<FaceId>("noir");
+  const [activeFailure, setActiveFailure] = useState<Failure | null>(null);
   useEffect(() => {
     const minimumOffset = 59 * 1000;
     const maximumOffset = (11 * 60 * 60 + 59 * 60 + 59) * 1000;
     const offset = Math.floor(Math.random() * (maximumOffset - minimumOffset + 1)) + minimumOffset;
-    const clockTimer = setInterval(() => setTime(new Date(Date.now() + offset)), 50);
+    let lastNow = Date.now();
+    let displayMs = lastNow + offset;
+    let active: Failure | null = null;
+    let faultEndsAt = 0;
+    let nextFaultAt = lastNow + 3000 + Math.random() * 5000;
+    let speed = 1;
+    const startFailure = (now: number) => {
+      active = failures[Math.floor(Math.random() * failures.length)].id;
+      speed = active === "fast" ? 2 + Math.random() * 2 : active === "slow" ? 0.15 + Math.random() * 0.55 : 1;
+      if (active === "jump") displayMs += (Math.random() > 0.5 ? 1 : -1) * (30_000 + Math.random() * 270_000);
+      faultEndsAt = now + 1800 + Math.random() * 4200;
+      setActiveFailure(active);
+    };
+    const clockTimer = setInterval(() => {
+      const now = Date.now();
+      const delta = now - lastNow;
+      const correctMs = now + offset;
+      lastNow = now;
+      if (!active && now >= nextFaultAt) startFailure(now);
+      if (active && now >= faultEndsAt) {
+        active = null;
+        setActiveFailure(null);
+        nextFaultAt = now + 4500 + Math.random() * 9000;
+      }
+      const correction = correctMs - displayMs;
+      switch (active) {
+        case "fast": case "slow": displayMs += delta * speed; break;
+        case "stopped": break;
+        case "jitter": displayMs += delta + (Math.random() - 0.62) * 700; break;
+        case "stutter": displayMs += Math.floor(now / 260) % 2 === 0 ? 0 : delta * 2; break;
+        case "time-smear": displayMs += delta + correction * 0.018; break;
+        default: displayMs += delta + correction * 0.004;
+      }
+      setTime(new Date(displayMs));
+    }, 50);
 
     return () => clearInterval(clockTimer);
   }, []);
+  const secondHandTime = time && activeFailure === "skipped-seconds" ? new Date(Math.floor(time.getTime() / 3000) * 3000) : time && activeFailure === "desynchronized-hands" ? new Date(time.getTime() - 16_000) : time;
+  const minuteHandTime = time && activeFailure === "desynchronized-hands" ? new Date(time.getTime() + 120_000) : time;
   const hoursDeg = time ? ((time.getHours() % 12) + time.getMinutes() / 60) * 30 : 0;
-  const minutesDeg = time ? (time.getMinutes() + time.getSeconds() / 60) * 6 : 0;
-  const secondsDeg = time ? (time.getSeconds() + time.getMilliseconds() / 1000) * 6 : 0;
+  const minutesDeg = minuteHandTime ? (minuteHandTime.getMinutes() + minuteHandTime.getSeconds() / 60) * 6 : 0;
+  const secondsDeg = secondHandTime ? (secondHandTime.getSeconds() + secondHandTime.getMilliseconds() / 1000) * 6 : 0;
   const timeString = time ? time.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" }) : "--:--:--";
   const dateLabel = time ? time.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" }) : "---";
   const theme = face === "paper" || face === "chrono" ? "bg-[#e9e4db] text-zinc-900" : face === "pixel" ? "bg-[#0d150d] text-[#d9ff8b]" : "bg-[#09090d] text-white";
