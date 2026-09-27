@@ -1,29 +1,24 @@
 # 🕰️ Broken Clock
 
-**Broken Clock** is a minimalist broken clock built with modern technologies to provide a fast, elegant, and content-first experience.
+**Broken Clock** is a minimalist clock that deliberately accelerates, changes speed, and evades real time.
 
 ## ✨ Features
 
 - **Minimalist Design**: Focused on readability and high-quality visuals.
-- **Content Management**: Powered by Payload CMS 3.0 for intuitive content editing.
 - **Responsive Layout**: Optimized for all devices using Tailwind CSS 4.
-- **Category System**: Organize stories by travel destination or life topics.
-- **Admin Management**: Pre-configured with dual-administrator access.
+- **Unpredictable Time**: Randomized speed and direction changes keep the clock from settling on real time.
 
 ## 🛠️ Tech Stack
 
-- **Framework**: [Next.js 15+](https://nextjs.org/)
-- **CMS**: [Payload CMS 3.0](https://payloadcms.com/)
+- **Framework**: [Next.js](https://nextjs.org/)
 - **Styling**: [Tailwind CSS 4.0](https://tailwindcss.com/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Database**: PostgreSQL (via Payload)
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js 20+
-- A running PostgreSQL instance (for Payload)
 
 ### Installation
 
@@ -38,31 +33,18 @@
    npm install
    ```
 
-3. Configure environment variables:
-   Copy `.env.example` to `.env` and fill in your database and secret keys.
-
-4. Run the development server:
+3. Run the development server:
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-### Seeding
-
-To initialize the project with default administrators and sample categories, run:
-```bash
-npm run seed
-```
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 ## 📐 Architecture
 
-- `/src/app`: Next.js App Router for frontend and API routes.
-- `/src/collections`: Payload CMS collection definitions.
-- `/src/payload.config.ts`: Main configuration for Payload.
+- `/src/app`: Next.js App Router and clock UI.
 - `/public`: Static assets (logos, images).
 
 ## 📄 License
 
 This project is licensed under the MIT License.
-

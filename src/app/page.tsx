@@ -3,15 +3,29 @@
 import { useEffect, useState } from "react";
 
 export default function Home() {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
   const [speed, setSpeed] = useState(7.5);
+  const [realityGap, setRealityGap] = useState(0);
 
   useEffect(() => {
     // Start with a 1-hour offset so we don't start at real time
-    let virtualMs = Date.now() + (1000 * 60 * 60);
-    let lastRealTime = Date.now();
+    const initialRealTime = Date.now();
+    let virtualMs = initialRealTime + (1000 * 60 * 60);
+    let lastRealTime = initialRealTime;
     let currentSpeed = 7.5;
     let targetSpeed = 7.5;
+    let direction = 1;
+    let inDangerZone = false;
+    let randomizerTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const getRealityGap = (virtualTime: number, realTime: number) => {
+      const day = 24 * 60 * 60 * 1000;
+      const virtualTimeOfDay = ((virtualTime % day) + day) % day;
+      const realTimeOfDay = realTime % day;
+      const difference = Math.abs(virtualTimeOfDay - realTimeOfDay);
+
+      return Math.min(difference, day - difference);
+    };
 
     const clockTimer = setInterval(() => {
       const now = Date.now();
@@ -22,21 +36,29 @@ export default function Home() {
       currentSpeed += (targetSpeed - currentSpeed) * 0.02;
       setSpeed(currentSpeed);
 
-      virtualMs += delta * currentSpeed;
+      virtualMs += delta * currentSpeed * direction;
 
       // --- REALITY EVASION LOGIC ---
-      // We check if the virtual time is within 2 seconds of real time (modulo 12 hours)
-      const twelveHours = 12 * 60 * 60 * 1000;
-      const virtualTimeOfDay = virtualMs % twelveHours;
-      const realTimeOfDay = now % twelveHours;
-      const timeDiff = Math.abs(virtualTimeOfDay - realTimeOfDay);
+      let timeDiff = getRealityGap(virtualMs, now);
 
+      // Reversal Logic: If within 1 minute, reverse direction
+      if (timeDiff < 60000) {
+        if (!inDangerZone) {
+          direction *= -1;
+          inDangerZone = true;
+        }
+      } else {
+        inDangerZone = false;
+      }
+
+      // Hard Jump Logic: If within 2 seconds, jump away
       if (timeDiff < 2000) {
-        // If we're getting dangerously close to "correct", perform a temporal jump
-        virtualMs += 5000;
+        virtualMs += 5000 * (direction > 0 ? 1 : -1);
+        timeDiff = getRealityGap(virtualMs, now);
       }
       // -----------------------------
 
+      setRealityGap(timeDiff);
       setTime(new Date(virtualMs));
     }, 50);
 
@@ -44,23 +66,22 @@ export default function Home() {
     const randomizeSpeed = () => {
       targetSpeed = Math.random() * (100 - 0.01) + 0.01;
       const nextDelay = Math.random() * 10000 + 5000;
-      setTimeout(randomizeSpeed, nextDelay);
+      randomizerTimer = setTimeout(randomizeSpeed, nextDelay);
     };
 
-    const initialRandomizer = setTimeout(randomizeSpeed, 5000);
+    randomizerTimer = setTimeout(randomizeSpeed, 5000);
 
     return () => {
       clearInterval(clockTimer);
-      clearTimeout(initialRandomizer);
+      if (randomizerTimer) clearTimeout(randomizerTimer);
     };
   }, []);
 
   // Calculate continuous rotations
-  // Using modulo day to keep values manageable while preserving continuity within the day
-  const dayMs = time.getTime() % (24 * 60 * 60 * 1000);
-  const secondsDeg = (dayMs / 1000) * 6;
-  const minutesDeg = (dayMs / (1000 * 60)) * 6;
-  const hoursDeg = (dayMs / (1000 * 3600)) * 30;
+  // Use local date fields so the analog hands match the digital display.
+  const secondsDeg = time ? (time.getSeconds() + time.getMilliseconds() / 1000) * 6 : 0;
+  const minutesDeg = time ? (time.getMinutes() + time.getSeconds() / 60) * 6 : 0;
+  const hoursDeg = time ? ((time.getHours() % 12) + time.getMinutes() / 60) * 30 : 0;
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-[#0a0a0a] font-sans selection:bg-zinc-800">
@@ -150,10 +171,15 @@ export default function Home() {
             Broken Clock
           </h1>
           <p className="text-xl font-mono tracking-[0.25em] text-zinc-600 tabular-nums">
-            {time.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            {time
+              ? time.toLocaleTimeString([], { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })
+              : "--:--:--"}
           </p>
           <p className="text-[10px] font-mono tracking-widest text-zinc-800 uppercase">
             Speed: {speed.toFixed(2)}x
+          </p>
+          <p className={`text-[9px] font-mono tracking-[0.3em] uppercase transition-colors duration-500 ${realityGap < 120000 ? 'text-rose-500 animate-pulse' : 'text-zinc-900'}`}>
+            Reality Gap: {(realityGap / 1000).toFixed(1)}s
           </p>
         </div>
 
@@ -171,4 +197,3 @@ export default function Home() {
     </div>
   );
 }
-
